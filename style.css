@@ -1,0 +1,230 @@
+/* Global Styles */
+body {
+  margin: 0;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+  background: #f5f5f5;
+}
+
+.toolbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 40px;
+  background: #fff;
+  border-bottom: 1px solid #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 10px;
+  z-index: 1000;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+.toolbar select,
+.toolbar button,
+.toolbar input {
+  margin: 0 5px;
+  height: 30px;
+  font-size: 14px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.toolbar input[type="text"],
+.log-input input {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 14px;
+}
+
+.toolbar button:hover {
+  background: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Ace Editor */
+#editor {
+  position: absolute;
+  top: 40px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #272822;
+  color: #f8f8f2;
+}
+
+/* Panel Log AI */
+.log-container {
+  position: fixed;
+  top: 40px;
+  right: -320px;
+  width: 300px;
+  height: calc(100% - 40px);
+  background: #fff;
+  border-left: 1px solid #ccc;
+  overflow-y: auto;
+  transition: right 0.3s ease;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  will-change: transform;
+}
+
+.log-container.show {
+  right: 10px;
+}
+
+.log-buttons {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 10px;
+}
+
+.log-buttons button {
+  flex: 1;
+  padding: 5px 0;
+  font-size: 14px;
+  transition: background 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.log-buttons button:hover {
+  background: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.log-messages {
+  max-height: calc(100% - 90px);
+  overflow-y: auto;
+  margin-bottom: 10px;
+}
+
+.log-message {
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+  margin-bottom: 5px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Skema Warna Log */
+.log-message.you {
+  background: linear-gradient(135deg, #FFA07A, #FFE4B5) !important; /* Oranye ke kuning */
+  color: #000 !important;
+}
+
+.log-message.ai.finished {
+  background: linear-gradient(135deg, #00DFFF, #ffffff) !important; /* #00DFFF ke putih */
+  color: #000 !important;
+}
+
+.log-message.ai.typing {
+  background: linear-gradient(135deg, #87CEFA, #E0FFFF) !important;
+  color: #000 !important;
+}
+
+.log-message.ai.code {
+  background: linear-gradient(135deg, #ffffff, #FFFACD) !important; /* Putih ke kuning muda */
+  color: #000 !important;
+}
+
+.log-message > .header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 5px;
+}
+
+.log-message p {
+  margin: 5px 0;
+  word-break: break-all;
+}
+
+pre {
+  background: #fff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  color: #000;
+  font-family: monospace;
+  padding: 10px;
+  border-radius: 4px;
+  margin: 5px 0;
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+h3 {
+  margin: 5px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.log-input {
+  display: flex;
+}
+
+.log-input input {
+  flex: 1;
+  padding: 5px;
+  font-size: 14px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.log-input button {
+  padding: 5px 10px;
+  font-size: 14px;
+  margin-left: 5px;
+  transition: background 0.3s, box-shadow 0.3s;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.log-input button:hover {
+  background: #e0e0e0;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Typing Indicator */
+.typing-indicator {
+  display: inline-block;
+  margin-left: 5px;
+}
+
+.typing-indicator .dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  margin-right: 2px;
+  background: #333;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+}
+
+.typing-indicator .dot:nth-child(2) { animation-delay: 0.2s; }
+.typing-indicator .dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 0; }
+  25% { opacity: 1; }
+}
+
+/* Info Box untuk Ace Editor */
+#editorInfo {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  color: #fff;
+  padding: 8px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  z-index: 1100;
+  display: none;
+  max-width: 300px;
+}
