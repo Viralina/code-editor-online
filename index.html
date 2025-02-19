@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Editor with AI</title>
+    <!-- Ace Editor & Language Tools -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js"></script>
+    <!-- highlight.js for code blocks -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <!-- Link file CSS terpisah -->
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Toolbar & Editor -->
+    <div class="toolbar">
+      <select id="theme">
+        <option value="ace/theme/xcode">Xcode</option>
+        <option value="ace/theme/monokai" selected>Monokai</option>
+        <option value="ace/theme/github">GitHub</option>
+      </select>
+      <select id="mode">
+        <option value="ace/mode/html" selected>HTML</option>
+        <option value="ace/mode/javascript">JavaScript</option>
+        <option value="ace/mode/python">Python</option>
+      </select>
+      <button id="save">Save Local</button>
+      <button id="download">Download File</button>
+      <input type="file" id="open" accept="*" />
+      <input type="number" id="fontSize" min="10" max="24" value="14" style="width: 50px;" />
+      <button id="toggleLog">Log AI</button>
+    </div>
+    <pre id="editor">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;title&gt;New File&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello, World!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+    <!-- Info Box untuk Ace Editor -->
+    <div id="editorInfo"></div>
+    <!-- Panel Log AI -->
+    <div class="log-container" id="logContainer">
+      <div class="log-buttons">
+        <button id="copyCodeGlobal">Copy Last Code</button>
+        <button id="aiCode">AI Code</button>
+      </div>
+      <div class="log-messages" id="logMessages"></div>
+      <div class="log-input">
+        <input type="text" id="logUserInput" placeholder="Tulis komentar atau permintaan ke AI..." />
+        <button id="logSend">Send</button>
+      </div>
+    </div>
+    <!-- Link file JS terpisah -->
+    <script src="script.obf.js"></script>
+  </body>
+</html>
