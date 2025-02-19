@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor</title>
+  <!-- CSS highlight.js (gaya bisa disesuaikan, misalnya atom-one-dark) -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" />
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+    }
+    .toolbar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 40px;
+      background-color: #ffffff;
+      border-bottom: 1px solid #ccc;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 10px;
+      z-index: 1000;
+      overflow-x: auto;
+      white-space: nowrap;
+    }
+    .toolbar select,
+    .toolbar button,
+    .toolbar input {
+      margin: 0 5px;
+      height: 30px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .toolbar button:hover {
+      background-color: #e0e0e0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    #editor {
+      position: absolute;
+      top: 40px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: #272822;
+      color: #f8f8f2;
+    }
+    /* Panel log AI */
+    .log-container {
+      position: fixed;
+      top: 40px;
+      right: -320px;
+      width: 300px;
+      height: calc(100% - 40px);
+      background: #ffffff;
+      border-left: 1px solid #ccc;
+      overflow-y: auto;
+      transition: right 0.3s ease;
+      padding: 10px;
+      box-sizing: border-box;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+      will-change: transform;
+    }
+    .log-container.show {
+      right: 10px;
+    }
+    .log-buttons {
+      display: flex;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .log-buttons button {
+      flex: 1;
+      padding: 5px 0;
+      font-size: 14px;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .log-buttons button:hover {
+      background-color: #e0e0e0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .log-messages {
+      max-height: calc(100% - 140px);
+      overflow-y: auto;
+      margin-bottom: 10px;
+    }
+    .log-message {
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      padding: 5px;
+      margin-bottom: 5px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    /* Warna dinamis:
+         - Pesan user: gradasi merah–putih
+         - Pesan AI (umum): gradasi biru–putih
+         - Pesan AI dengan kode: gradasi hijau–putih */
+    .log-message.user {
+      background: linear-gradient(135deg, #FFB6C1, #FFF0F5);
+      color: #000;
+    }
+    .log-message.ai {
+      background: linear-gradient(135deg, #87CEFA, #E0FFFF);
+      color: #000;
+    }
+    .log-message.ai.code {
+      background: linear-gradient(135deg, #98FB98, #F5FFFA);
+      color: #000;
+    }
+    .log-message > .header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 5px;
+    }
+    .log-message p {
+      margin: 5px 0;
+      word-break: break-all;
+    }
+    /* Blok kode di dalam log */
+    pre {
+      background: #fff;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+      color: #000;
+      font-family: monospace;
+      padding: 10px;
+      border-radius: 4px;
+      margin: 5px 0;
+      max-width: 100%;
+      overflow-x: auto;
+    }
+    /* Markdown header style untuk '###' */
+    h3 {
+      margin: 5px 0;
+      font-size: 16px;
+      color: #333;
+    }
+    /* Area input log */
+    .log-input {
+      display: flex;
+    }
+    .log-input input {
+      flex: 1;
+      padding: 5px;
+      font-size: 14px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+    .log-input button {
+      padding: 5px 10px;
+      font-size: 14px;
+      margin-left: 5px;
+      transition: background-color 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      border-radius: 4px;
+    }
+    .log-input button:hover {
+      background-color: #e0e0e0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    /* Typing indicator dengan titik berkedip */
+    .typing-indicator {
+      display: inline-block;
+      margin-left: 5px;
+    }
+    .typing-indicator .dot {
+      display: inline-block;
+      width: 5px;
+      height: 5px;
+      margin-right: 2px;
+      background-color: #333;
+      border-radius: 50%;
+      animation: blink 1s infinite;
+    }
+    .typing-indicator .dot:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    .typing-indicator .dot:nth-child(3) {
+      animation-delay: 0.4s;
+    }
+    @keyframes blink {
+      0%, 50%, 100% { opacity: 0; }
+      25% { opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <select id="theme">
+      <option value="ace/theme/xcode">Xcode</option>
+      <option value="ace/theme/monokai" selected>Monokai</option>
+      <option value="ace/theme/github">GitHub</option>
+    </select>
+    <select id="mode">
+      <option value="ace/mode/html" selected>HTML</option>
+      <option value="ace/mode/javascript">JavaScript</option>
+      <option value="ace/mode/python">Python</option>
+    </select>
+    <button id="save">Save Local</button>
+    <button id="download">Download File</button>
+    <input type="file" id="open" accept="*">
+    <input type="number" id="fontSize" min="10" max="24" value="14" style="width: 50px;">
+    <button id="toggleLog">Log AI</button>
+  </div>
+
+  <pre id="editor">&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;New File&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;Hello, World!&lt;/h1&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+
+  <!-- Panel log AI -->
+  <div class="log-container" id="logContainer">
+    <div class="log-buttons">
+      <button id="copyCodeGlobal">Copy Last Code</button>
+      <button id="aiCode">AI Code</button>
+    </div>
+    <div class="log-messages" id="logMessages">
+      <!-- Pesan AI dan user akan muncul di sini -->
+    </div>
+    <div class="log-input">
+      <input type="text" id="logUserInput" placeholder="Tulis komentar atau permintaan ke AI...">
+      <button id="logSend">Send</button>
+    </div>
+  </div>
+
+  <!-- highlight.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <script>
+    // Inisialisasi highlight.js untuk blok kode
+    document.addEventListener("DOMContentLoaded", () => {
+      hljs.highlightAll();
+    });
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js" type="text/javascript" charset="utf-8"></script>
+  <script>
+    var editor = ace.edit("editor");
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/html");
+    editor.setFontSize(14);
+
+    // Global variabel untuk menyimpan konten proyek dan riwayat percakapan
+    var projectForAI = "";
+    var conversationHistory = JSON.parse(localStorage.getItem("conversationHistory")) || [];
+
+    // Fungsi sederhana untuk memparsing markdown: header (###) dan bold (**)
+    function parseMarkdown(text) {
+      text = text.replace(/^###\s*(.*)$/gm, '<h3>$1</h3>');
+      text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      return text;
+    }
+
+    // Fungsi untuk menyimpan riwayat percakapan ke localStorage
+    function saveHistory() {
+      localStorage.setItem("conversationHistory", JSON.stringify(conversationHistory));
+      // Konversi ke YAML secara otomatis dan simpan ke localStorage (kamu bisa ambil ini untuk database.yml)
+      let yamlText = "";
+      conversationHistory.forEach(msg => {
+        yamlText += `- sender: ${msg.sender}\n  text: |\n    ${msg.text.split("\n").join("\n    ")}\n`;
+      });
+      localStorage.setItem("databaseYml", yamlText);
+    }
+
+    // Fungsi untuk menambah pesan ke conversationHistory
+    function addToHistory(sender, text) {
+      conversationHistory.push({ sender: sender, text: text });
+      saveHistory();
+    }
+
+    // Toolbar events
+    document.getElementById('theme').addEventListener('change', function() {
+      editor.setTheme(this.value);
+    });
+    document.getElementById('mode').addEventListener('change', function() {
+      editor.session.setMode(this.value);
+    });
+    document.getElementById('save').addEventListener('click', function() {
+      localStorage.setItem('editorContent', editor.getValue());
+      alert('Proyek disimpan secara lokal!');
+    });
+    document.getElementById('download').addEventListener('click', function() {
+      const blob = new Blob([editor.getValue()], { type: "text/plain;charset=utf-8" });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = "code.html";
+      a.click();
+    });
+    document.getElementById('open').addEventListener('change', function(e) {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+          editor.setValue(e.target.result, -1);
+        };
+        reader.readAsText(file);
+      }
+    });
+    document.getElementById('fontSize').addEventListener('input', function() {
+      editor.setFontSize(parseInt(this.value, 10));
+    });
+    document.getElementById('toggleLog').addEventListener('click', function() {
+      document.getElementById('logContainer').classList.toggle('show');
+    });
+
+    // Tombol "AI Code" untuk mengambil konten proyek dari editor
+    document.getElementById('aiCode').addEventListener('click', function() {
+      projectForAI = editor.getValue();
+      appendLogMessage('user', 'Project code loaded for AI.');
+      addToHistory('You', 'Project code loaded for AI.');
+    });
+
+    // Tombol global untuk menyalin kode AI terakhir
+    document.getElementById('copyCodeGlobal').addEventListener('click', function() {
+      const lastCode = findLastCodeInLog();
+      if (lastCode) {
+        navigator.clipboard.writeText(lastCode).then(() => {
+          alert('Kode berhasil disalin!');
+        }).catch(() => {
+          alert('Gagal menyalin kode.');
+        });
+      } else {
+        alert('Tidak ditemukan pesan AI berupa kode.');
+      }
+    });
+
+    // Panel log AI: fungsi kirim pesan ke AI (hanya mengirim input terbaru)
+    document.getElementById('logSend').addEventListener('click', async function() {
+      const userInput = document.getElementById('logUserInput');
+      const message = userInput.value.trim();
+      if (!message) return;
+      
+      appendLogMessage('user', message);
+      addToHistory('You', message);
+      userInput.value = '';
+      
+      // Buat query dengan hanya input terbaru; sertakan project code jika ada
+      let query = message;
+      if (projectForAI) {
+        query += "\n\nProject Code:\n" + projectForAI;
+        projectForAI = "";
+      }
+      
+      // Tambahkan placeholder "Typing" dengan indikator titik berkedip
+      const placeholderId = appendLogMessage('ai', 'Typing<span class="typing-indicator"><span class="dot"></span><span class="dot"></span><span class="dot"></span></span>');
+      addToHistory('AI', 'Typing...');
+      
+      try {
+        const response = await fetch(`https://free-unoficial-gpt4o-mini-api-g70n.onrender.com/chat/?query=${encodeURIComponent(query)}`, {
+          method: 'GET',
+          headers: { 'accept': 'application/json' }
+        });
+        const data = await response.json();
+        let aiResponse = data.results || 'No response from API';
+        updateLogMessage(placeholderId, 'ai', aiResponse);
+        addToHistory('AI', aiResponse);
+      } catch (error) {
+        updateLogMessage(placeholderId, 'ai', 'Failed to fetch API');
+        addToHistory('AI', 'Failed to fetch API');
+      }
+    });
+
+    // Fungsi untuk membangun node konten (tanpa header) secara dinamis
+    function buildContentNodes(newText) {
+      const fragment = document.createDocumentFragment();
+      if(newText.includes("```")) {
+        const parts = newText.split(/```/g);
+        parts.forEach((part, index) => {
+          if(index % 2 === 0) {
+            if(part.trim() !== "") {
+              const p = document.createElement('p');
+              p.innerHTML = parseMarkdown(part);
+              fragment.appendChild(p);
+            }
+          } else {
+            const pre = document.createElement('pre');
+            const code = document.createElement('code');
+            code.textContent = part;  // tampilkan sebagai data mentah
+            pre.appendChild(code);
+            fragment.appendChild(pre);
+            // Panggil highlight.js untuk memproses blok kode ini
+            hljs.highlightElement(code);
+            const copyBtn = document.createElement('button');
+            copyBtn.textContent = "Copy Code";
+            copyBtn.style.cursor = "pointer";
+            copyBtn.addEventListener('click', function() {
+              navigator.clipboard.writeText(part).then(() => {
+                alert("Kode berhasil disalin!");
+              }).catch(() => {
+                alert("Gagal menyalin kode.");
+              });
+            });
+            fragment.appendChild(copyBtn);
+          }
+        });
+      } else {
+        const p = document.createElement('p');
+        p.innerHTML = parseMarkdown(newText);
+        fragment.appendChild(p);
+      }
+      return fragment;
+    }
+
+    // Fungsi untuk membuat elemen log message dengan tombol hapus dan tombol salin kode (jika ada blok kode)
+    let messageIdCounter = 0;
+    function createLogMessageElement(sender, text, id) {
+      let extraClass = "";
+      if (sender === 'ai' && text.includes("```")) {
+        extraClass = " code";
+      }
+      const container = document.createElement('div');
+      container.id = id;
+      container.className = "log-message " + sender + extraClass;
+
+      const header = document.createElement('div');
+      header.className = "header";
+      const label = document.createElement('span');
+      label.innerHTML = (sender === 'ai' ? "AI:" : "You:");
+      header.appendChild(label);
+      const deleteBtn = document.createElement('button');
+      deleteBtn.textContent = "Delete";
+      deleteBtn.style.cursor = "pointer";
+      deleteBtn.addEventListener('click', function() {
+        container.remove();
+      });
+      header.appendChild(deleteBtn);
+      container.appendChild(header);
+
+      container.appendChild(buildContentNodes(text));
+      return container;
+    }
+
+    // Fungsi untuk menambahkan pesan ke log, mengembalikan id pesan
+    function appendLogMessage(sender, text) {
+      messageIdCounter++;
+      const id = 'msg-' + messageIdCounter;
+      const logMessages = document.getElementById('logMessages');
+      const msgElement = createLogMessageElement(sender, text, id);
+      logMessages.appendChild(msgElement);
+      logMessages.scrollTop = logMessages.scrollHeight;
+      return id;
+    }
+
+    // Fungsi untuk memperbarui pesan di log berdasarkan id (hanya konten pesan saja)
+    function updateLogMessage(id, sender, newText) {
+      const msgElement = document.getElementById(id);
+      if (msgElement) {
+        while (msgElement.childNodes.length > 1) {
+          msgElement.removeChild(msgElement.lastChild);
+        }
+        msgElement.appendChild(buildContentNodes(newText));
+      }
+    }
+
+    // Fungsi untuk mencari pesan AI terakhir yang mengandung blok kode
+    function findLastCodeInLog() {
+      const logMessages = document.getElementById('logMessages');
+      const aiMessages = logMessages.getElementsByClassName('ai');
+      for (let i = aiMessages.length - 1; i >= 0; i--) {
+        const codeBlock = aiMessages[i].querySelector('pre code');
+        if (codeBlock) {
+          return codeBlock.innerText;
+        }
+      }
+      return "";
+    }
+  </script>
+</body>
+</html>
