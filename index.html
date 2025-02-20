@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Editor with AI</title>
+  <!-- Ace Editor & Language Tools -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ext-language_tools.js"></script>
+  <!-- highlight.js for code blocks -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+  <!-- Link file CSS terpisah -->
+  <link rel="stylesheet" href="style.css" />
+    <!-- Google Analytics (GA4) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-L0TN7F9QZR"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-GR7GVPEX2W');
+    </script>
+
+    <!-- google adsense -->
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2426675510802513"
+     crossorigin="anonymous"></script>
+
+    <!-- Google Tag Manager -->
+    <script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+    new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+    j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+    'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+    })(window,document,'script','dataLayer','GTM-5VDSQBCV');</script>
+    <!-- End Google Tag Manager -->
+    
+</head>
+<body>
+  <!-- Google Tag Manager (noscript) -->
+    <noscript>
+    <iframe src="https://www.googletagmanager.com/ns.html?id=GT-PJSBLZCZ"
+      height="0" width="0" style="display:none;visibility:hidden"></iframe>
+    </noscript>
+    <!-- End Google Tag Manager (noscript) -->
+    
+  <!-- Toolbar -->
+  <div class="toolbar">
+    <div class="toolbar-left">
+      <button id="toggleFiles">=</button>
+      <button id="toggleAceSettings">⚙</button>
+      <select id="mode">
+        <option value="ace/mode/html" selected>HTML</option>
+        <option value="ace/mode/javascript">JavaScript</option>
+        <option value="ace/mode/css">CSS</option>
+        <option value="ace/mode/python">Python</option>
+      </select>
+    </div>
+    <div class="toolbar-center">
+      <button id="save">Save Local</button>
+      <button id="download">Download File</button>
+      <button id="run">Run</button>
+      <input type="file" id="open" accept="*" />
+      <input type="number" id="fontSize" min="10" max="24" value="14" style="width: 50px;" />
+    </div>
+    <div class="toolbar-right">
+      <button id="toggleLog">Log AI</button>
+      <button id="infoButton">?</button>
+    </div>
+  </div>
+  <!-- Confirmation Modal -->
+  <div id="confirmModal" class="modal">
+    <div class="modal-content">
+      <p>
+        This is experimental. Proceed?
+      </p>
+      <div class="confirm-buttons">
+        <button id="confirmYes">Yes</button>
+        <button id="confirmCancel">Cancel</button>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Ace Editor -->
+  <pre id="editor">
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;title&gt;New File&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;h1&gt;Hello, World!&lt;/h1&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+
+  <!-- Info Box untuk Ace Editor -->
+  <div id="editorInfo"></div>
+
+  <!-- Panel Log AI (Slide dari kanan) -->
+  <div class="log-container" id="logContainer">
+    <div class="log-buttons">
+      <button id="copyCodeGlobal">Copy Last Code</button>
+      <button id="aiCode">AI Code</button>
+    </div>
+    <div class="log-messages" id="logMessages"></div>
+    <div class="log-input">
+      <input type="text" id="logUserInput" placeholder="Tulis komentar atau permintaan ke AI..." />
+      <button id="logSend">Send</button>
+    </div>
+  </div>
+
+  <!-- Panel File (Slide dari kiri) -->
+  <div id="filePanel">
+    <h3>Files</h3>
+    <div id="addFileSection">
+      <input type="text" id="newFileName" placeholder="Enter file name" />
+      <button id="addFileButton">+</button>
+    </div>
+    <ul id="fileList">
+      <!-- Daftar file akan diisi secara dinamis -->
+    </ul>
+  </div>
+
+  <!-- Panel Run Output (Slide dari bawah) dengan dua tab -->
+  <div id="outputContainer">
+    <div id="runTabs">
+      <button class="run-tab active" data-tab="browser">Browser</button>
+      <button class="run-tab" data-tab="console">Console</button>
+    </div>
+    <div id="runContent">
+      <div id="runBrowser" class="run-pane active">
+        <iframe id="outputFrame"></iframe>
+      </div>
+      <div id="runConsole" class="run-pane">
+        <div id="runLog"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Info -->
+  <div id="infoModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+    <h2>Website Update - v1.0.1</h2>
+    <p>We have introduced exciting new features and improvements:</p>
+    <ul>
+      <li>Dynamic file management system</li>
+    <li>Enhanced Ace Editor settings</li>
+      <li>Responsive design for various devices</li>
+      <li>Improved AI integration</li>
+    </ul>
+    <p>Enjoy the new experience!</p>
+      <a href="https://github.com/Viralina" target="_blank">
+        <img src="https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png" alt="GitHub" class="github-icon">
+      </a>
+    </div>
+  </div>
+
+  <!-- Link file JS terpisah -->
+  <script src="script.js"></script>
+</body>
+</html>
