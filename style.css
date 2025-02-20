@@ -36,6 +36,10 @@ body {
     border: 10px 30px;
 }
 
+#fontSize {
+  place-items: center;
+}
+
 /* Ace Editor */
 #editor {
   position: absolute;
