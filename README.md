@@ -8,3 +8,6 @@ We have made several updates and improvements:
 - Better AI integration  
 
 Enjoy the new experience!
+new experience!  
+
+📜 **See full changelog here →** [CHANGELOG.md](./CHANGELOG.md)  
